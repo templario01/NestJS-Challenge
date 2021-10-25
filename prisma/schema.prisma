@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  moderator
+}
+
+enum TokenType {
+  refresh
+  session
+  veryfication
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  uuid          String        @unique @default(uuid()) @db.Uuid
+  name          String
+  email         String        @unique
+  password      String
+  role          Role
+  veryfiedAt    DateTime?     @map(name: "veryfied_at")
+  createdAt     DateTime      @default(now()) @map(name: "created_at")
+  updatedAt     DateTime      @updatedAt @map(name: "updated_at")
+  tokens        Token[]
+  productsLikes ProductLike[]
+  cart          Cart?
+
+  Order Order[]
+  @@map("users")
+}
+
+model Token {
+  id        Int       @id @default(autoincrement())
+  uuid      String    @unique @default(uuid()) @db.Uuid
+  token     String
+  type      TokenType
+  expiresAt DateTime  @map(name: "expires_at")
+  createdAt DateTime  @default(now()) @map(name: "created_at")
+  updatedAt DateTime  @updatedAt @map(name: "updated_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int       @map(name: "user_id")
+
+  @@map("tokens")
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  uuid     String    @unique @default(uuid()) @db.Uuid
+  name     String    @unique @db.VarChar(20)
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            Int            @id @default(autoincrement())
+  uuid          String         @unique @default(uuid()) @db.Uuid
+  name          String         @db.VarChar(20)
+  stock         Int            @db.Integer
+  price         Decimal        @db.Money
+  likes         Int            @db.Integer
+  active        Boolean        @db.Boolean
+  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId    Int            @map("category_id")
+  images        Attachment[]
+  productsLikes ProductLike[]
+  cart          CartProduct[]
+  order         OrderProduct[]
+
+  @@map("products")
+}
+
+model ProductLike {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int     @map("user_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int     @map("product_id")
+
+  @@map("products_likes")
+}
+
+model Cart {
+  id        Int           @id @default(autoincrement())
+  uuid      String        @unique @default(uuid()) @db.Uuid
+  total     Decimal       @db.Money
+  createdAt DateTime      @default(now()) @map(name: "created_at")
+  updatedAt DateTime      @updatedAt @map(name: "updated_at")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int           @unique @map("user_id")
+  products  CartProduct[]
+
+  @@map("carts")
+}
+
+model CartProduct {
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId    Int     @map(name: "cart_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int     @unique
+
+  @@id([productId, cartId])
+}
+
+model Order {
+  id        Int            @id @default(autoincrement())
+  uuid      String         @unique @default(uuid()) @db.Uuid
+  total     Decimal        @db.Money
+  createdAt DateTime       @default(now()) @map(name: "created_at")
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int            @unique @map("user_id")
+  products  OrderProduct[]
+
+  @@map("orders")
+}
+
+model OrderProduct {
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   Int     @map(name: "order_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int     @unique
+
+  @@id([productId, orderId])
+}
+
+model Attachment {
+  id          Int       @id @default(autoincrement())
+  key         String
+  createdAt   DateTime  @default(now()) @map(name: "created_at")
+  contentType String    @map(name: "content_type")
+  ext         String
+  product     Product[] @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   Int       @map(name: "product_id")
+
+  @@map("attachments")
+}
