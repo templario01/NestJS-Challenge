@@ -70,7 +70,7 @@ model Product {
   price         Decimal        @db.Money
   likes         Int            @db.Integer @default(0)
   active        Boolean        @db.Boolean 
-  category      Category[]
+  category      Category[]      
   images        Attachment[]
   productsLikes ProductLike[]
   cart          CartProduct[]
