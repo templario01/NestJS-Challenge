@@ -96,4 +96,6 @@ export class AuthService {
     const token = await this.jwtService.createToken(tokenPayload, userFound.id);
     return { token: token.token, expiration: token.expiresAt };
   };
+
+  // logout = async ()
 }
