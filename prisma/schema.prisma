@@ -12,13 +12,13 @@ datasource db {
 
 enum Role {
   user
-  moderator
+  manager
 }
 
 enum TokenType {
   refresh
   session
-  veryfication
+  verification
 }
 
 model User {
@@ -27,7 +27,7 @@ model User {
   name          String
   email         String        @unique
   password      String
-  role          Role
+  role          Role          @default(user)
   veryfiedAt    DateTime?     @map(name: "veryfied_at")
   createdAt     DateTime      @default(now()) @map(name: "created_at")
   updatedAt     DateTime      @updatedAt @map(name: "updated_at")
@@ -93,7 +93,7 @@ model ProductLike {
 model Cart {
   id        Int           @id @default(autoincrement())
   uuid      String        @unique @default(uuid()) @db.Uuid
-  total     Decimal       @db.Money
+  total     Decimal       @default(0) @db.Money
   createdAt DateTime      @default(now()) @map(name: "created_at")
   updatedAt DateTime      @updatedAt @map(name: "updated_at")
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
