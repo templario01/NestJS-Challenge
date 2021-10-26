@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -20,23 +24,31 @@ export class CategoryService {
   };
 
   updateCategory = async (id: number, updateCategoryDto: UpdateCategoryDto) => {
-    const query = await this.prismaService.category.update({
-      where: {
-        id: id,
-      },
-      data: {
-        name: updateCategoryDto.name,
-      },
-    });
-    return query;
+    try {
+      const query = await this.prismaService.category.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: updateCategoryDto.name,
+        },
+      });
+      return query;
+    } catch (error) {
+      throw new BadRequestException('');
+    }
   };
 
   deleteCategory = async (id: number) => {
-    const query = await this.prismaService.category.delete({
-      where: {
-        id: id,
-      },
-    });
-    return query;
+    try {
+      const query = await this.prismaService.category.delete({
+        where: {
+          id: id,
+        },
+      });
+      return query;
+    } catch (error) {
+      throw new NotFoundException(`Category #${id} not found`);
+    }
   };
 }

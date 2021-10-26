@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsDecimal,
-  IsNumber,
-  IsPositive,
-  IsString,
-} from 'class-validator';
+import { IsBoolean, IsNumber, IsPositive, IsString } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -14,7 +8,6 @@ export class CreateProductDto {
   @IsNumber()
   readonly stock: number;
 
-  @IsDecimal()
   @IsPositive()
   @IsNumber()
   readonly price: number;
@@ -22,6 +15,6 @@ export class CreateProductDto {
   @IsBoolean()
   readonly active: boolean;
 
-  @IsNumber()
-  readonly idCategory: number;
+  @IsString({ each: true })
+  readonly categoryName: string[];
 }
