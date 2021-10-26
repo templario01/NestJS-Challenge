@@ -7,9 +7,10 @@ import { JwtService } from './common/services/jwt/jwt.service';
 import { SendgridService } from './common/services/sendgrid/sendgrid.service';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProductModule, CategoryModule],
+  imports: [AuthModule, PrismaModule, ProductModule, CategoryModule, CommonModule],
   controllers: [AppController],
   providers: [AppService, JwtService, SendgridService],
 })
