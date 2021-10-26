@@ -78,6 +78,11 @@ export class AuthService {
     const userFound = await this.prismaService.user.findUnique({
       where: { email: user.email },
     });
+    const cart = await this.prismaService.cart.findFirst({
+      where: {
+        userId: userFound.id,
+      },
+    });
     if (!userFound) {
       throw new NotFoundException('no user found');
     }
@@ -93,9 +98,19 @@ export class AuthService {
       type: 'session',
       uuid: userFound.uuid,
     };
+    if (cart) {
+      tokenPayload.cartUuid = cart.uuid;
+    }
     const token = await this.jwtService.createToken(tokenPayload, userFound.id);
     return { token: token.token, expiration: token.expiresAt };
   };
 
-  // logout = async ()
+  logout = async (user: JWTPayload) => {
+    const userFound = await this.prismaService.user.findFirst({
+      where: {
+        uuid: user.uuid,
+      },
+    });
+    return user;
+  };
 }
