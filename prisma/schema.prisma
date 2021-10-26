@@ -70,8 +70,7 @@ model Product {
   price         Decimal        @db.Money
   likes         Int            @db.Integer @default(0)
   active        Boolean        @db.Boolean 
-  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId    Int            @map("category_id")
+  category      Category[]      
   images        Attachment[]
   productsLikes ProductLike[]
   cart          CartProduct[]
