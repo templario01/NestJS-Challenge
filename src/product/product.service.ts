@@ -1,10 +1,12 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -78,6 +80,61 @@ export class ProductService {
     return query;
   };
 
+  updateProductAndCategories = async (
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ) => {
+    let query = null;
+    if (updateProductDto.categoryName.length == 0) {
+      // query = this.prismaService.product.update({
+
+      // })
+      console.log('hacer consulta');
+    }
+
+    const categories = await this.prismaService.category.findMany({
+      where: {
+        name: { in: updateProductDto.categoryName },
+      },
+    });
+
+    const categoriesMap = categories.map((c) => c.name);
+
+    updateProductDto.categoryName.forEach((name) => {
+      if (!categoriesMap.includes(name)) {
+        throw new BadRequestException(`Category #${name} not found`);
+      }
+    });
+    // #2 comparar las categorias nuevas con las existentes
+    // y eliminar las que ya no son nuevas
+    const newCategoriesProduct = updateProductDto.categoryName;
+
+    // #1 romper conexiones con todas las categorias
+    query = await this.prismaService.product.update({
+      where: {
+        id: id,
+      },
+      data: {
+        category: {
+          set: [],
+        },
+      },
+      include: { category: true },
+    });
+
+    // #2 asignar las nuevas conexiones con categorias
+    await this.prismaService.product.update({
+      where: {
+        id: id,
+      },
+      data: {
+        category: {
+          connect: newCategoriesProduct.map((c) => ({ name: c })),
+        },
+      },
+    });
+  };
+
   deleteProduct = async (id: number) => {
     try {
       await this.prismaService.product.delete({
@@ -90,27 +147,56 @@ export class ProductService {
       throw new NotFoundException(`Product #${id} not found`);
     }
   };
-  // createProduct = async (createProductDto: CreateProductDto) => {
-  //   createProductDto.categoryName.forEach((categoryName) => {
-  //     (async () => {
-  //       try {
-  //         await this.prismaService.product.create({
-  //           data: {
-  //             name: createProductDto.name,
-  //             stock: createProductDto.stock,
-  //             price: createProductDto.price,
-  //             active: createProductDto.active,
-  //             category: {
-  //               connect: {
-  //                 name: categoryName,
-  //               },
-  //             },
-  //           },
-  //         });
-  //       } catch (error) {
-  //         console.log(error);
-  //       }
-  //     })();
-  //   });
-  // };
+
+  setLike = async (productId: number, userId: number) => {
+    const findLikeId = await this.prismaService.productLike.findMany({
+      where: {
+        userId: userId,
+        productId: productId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    const idSelected = findLikeId[0];
+    if (idSelected) {
+      throw new ForbiddenException(
+        `user #${userId} already have Like in product #${productId}`,
+      );
+    }
+
+    const query = await this.prismaService.productLike.create({
+      data: {
+        product: {
+          connect: { id: productId },
+        },
+        user: {
+          connect: { id: userId },
+        },
+      },
+    });
+    return query;
+  };
+
+  deleteLike = async (productId: number, userId: number) => {
+    const findLikeId = await this.prismaService.productLike.findMany({
+      where: {
+        userId: userId,
+        productId: productId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    const idSelected = findLikeId[0];
+    if (!idSelected) {
+      throw new NotFoundException(`like not found`);
+    }
+    const query = await this.prismaService.productLike.delete({
+      where: {
+        id: idSelected.id,
+      },
+    });
+    return query;
+  };
 }
