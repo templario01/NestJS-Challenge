@@ -25,18 +25,26 @@ export class ProductController {
     return this.productService.findProduct(id);
   }
 
+  @Get('category/:categoryId')
+  findByCategory(@Param('categoryId') categoryId: number) {
+    return this.productService.findByCategory(categoryId);
+  }
+
   @Post()
   createProduct(@Body() createProductDto: CreateProductDto) {
     return this.productService.createProduct(createProductDto);
   }
 
-  // @Patch(':id')
-  // updateProduct(
-  //   @Param('id') id: string,
-  //   @Body() updateProductDto: UpdateProductDto,
-  // ) {
-  //   return this.productService.updateProduct(Number(id), updateProductDto);
-  // }
+  @Patch(':id')
+  updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    return this.productService.updateProductAndCategories(
+      Number(id),
+      updateProductDto,
+    );
+  }
 
   @Delete(':id')
   deleteProduct(@Param('id') id: string) {

@@ -27,6 +27,18 @@ export class ProductService {
     return query;
   };
 
+  findByCategory = async (categoryId: number) => {
+    return await this.prismaService.product.findMany({
+      where: {
+        category: {
+          every: {
+            id: categoryId,
+          },
+        },
+      },
+    });
+  };
+
   findProduct = async (id: number) => {
     try {
       const query = await this.prismaService.product.findUnique({
@@ -51,19 +63,7 @@ export class ProductService {
   };
 
   createProduct = async (createProductDto: CreateProductDto) => {
-    const categories = await this.prismaService.category.findMany({
-      where: {
-        name: { in: createProductDto.categoryName },
-      },
-    });
-
-    const categoriesMap = categories.map((c) => c.name);
-
-    createProductDto.categoryName.forEach((name) => {
-      if (!categoriesMap.includes(name)) {
-        throw new BadRequestException(`Category #${name} not found`);
-      }
-    });
+    this.verifyCategories(createProductDto.categoryName);
 
     const query = await this.prismaService.product.create({
       data: {
@@ -80,37 +80,48 @@ export class ProductService {
     return query;
   };
 
-  updateProductAndCategories = async (
-    id: number,
-    updateProductDto: UpdateProductDto,
-  ) => {
-    let query = null;
-    if (updateProductDto.categoryName.length == 0) {
-      // query = this.prismaService.product.update({
-
-      // })
-      console.log('hacer consulta');
-    }
-
+  private verifyCategories = async (categoryName: string[]) => {
     const categories = await this.prismaService.category.findMany({
       where: {
-        name: { in: updateProductDto.categoryName },
+        name: { in: categoryName },
       },
     });
 
     const categoriesMap = categories.map((c) => c.name);
 
-    updateProductDto.categoryName.forEach((name) => {
+    categoryName.forEach((name) => {
       if (!categoriesMap.includes(name)) {
         throw new BadRequestException(`Category #${name} not found`);
       }
     });
+  };
+
+  updateProductAndCategories = async (
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ) => {
+    // let query = null;
+    if (updateProductDto.categoryName.length == 0) {
+      return await this.prismaService.product.update({
+        where: {
+          id,
+        },
+        data: {
+          active: updateProductDto.active,
+          price: updateProductDto.price,
+          stock: updateProductDto.stock,
+          name: updateProductDto.name,
+        },
+      });
+    }
+
+    this.verifyCategories(updateProductDto.categoryName);
     // #2 comparar las categorias nuevas con las existentes
     // y eliminar las que ya no son nuevas
     const newCategoriesProduct = updateProductDto.categoryName;
 
     // #1 romper conexiones con todas las categorias
-    query = await this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         id: id,
       },
@@ -123,11 +134,15 @@ export class ProductService {
     });
 
     // #2 asignar las nuevas conexiones con categorias
-    await this.prismaService.product.update({
+    return await this.prismaService.product.update({
       where: {
-        id: id,
+        id,
       },
       data: {
+        active: updateProductDto.active,
+        price: updateProductDto.price,
+        stock: updateProductDto.stock,
+        name: updateProductDto.name,
         category: {
           connect: newCategoriesProduct.map((c) => ({ name: c })),
         },
