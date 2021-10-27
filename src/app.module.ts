@@ -10,6 +10,7 @@ import { CategoryModule } from './category/category.module';
 import { CommonModule } from './common/common.module';
 import { ImageRepositoryService } from './repositories/image-repository/image-repository.service';
 import { ImageRepositoryModule } from './repositories/image-repository/image-repository.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ImageRepositoryModule } from './repositories/image-repository/image-rep
     ProductModule,
     CategoryModule,
     CommonModule,
+    CartModule
     ImageRepositoryModule,
   ],
   controllers: [AppController],

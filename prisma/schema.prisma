@@ -68,9 +68,9 @@ model Product {
   name          String         @db.VarChar(20)
   stock         Int            @db.Integer
   price         Decimal        @db.Money
-  likes         Int            @db.Integer @default(0)
-  active        Boolean        @db.Boolean 
-  category      Category[]      
+  likes         Int            @default(0) @db.Integer
+  active        Boolean        @db.Boolean
+  category      Category[]
   images        Attachment[]
   productsLikes ProductLike[]
   cart          CartProduct[]
@@ -107,8 +107,10 @@ model CartProduct {
   cartId    Int     @map(name: "cart_id")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int     @unique
+  quantity  Int
 
   @@id([productId, cartId])
+  @@map("cart_products")
 }
 
 model Order {
@@ -128,8 +130,10 @@ model OrderProduct {
   orderId   Int     @map(name: "order_id")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int     @unique
+  quantity  Int
 
   @@id([productId, orderId])
+  @@map("order_products")
 }
 
 model Attachment {

@@ -7,6 +7,7 @@ export const secret = process.env.JWT_SECRET || 'ravn_nerdery';
 export const expires = process.env.JWT_EXPIRES || '1h';
 
 export type JWTPayload = {
+  // tokenId: number;
   uuid: string;
   cartUuid?: string;
   role: Role;

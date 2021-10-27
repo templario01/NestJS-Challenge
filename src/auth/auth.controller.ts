@@ -1,10 +1,10 @@
 import {
   Body,
   Controller,
+  Headers,
   Param,
   Patch,
   Post,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -18,11 +18,8 @@ import { LoginUserDto } from './dto/login-user.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  // @UseGuards(jwtAuthGuard)
   @Post('signup')
-  signup(@Body() body: CreateUserDto, @Request() req) {
-    // console.log(req.user);
-    // return req.user;
+  signup(@Body() body: CreateUserDto) {
     return this.authService.signup(body);
   }
 
@@ -38,9 +35,12 @@ export class AuthController {
 
   @UseGuards(jwtAuthGuard)
   @Post('logout')
-  logout(@Request() req) {
-    return this.authService.logout(req.user);
-    console.log(req.user);
-    return req.user;
+  logout(@Headers('Authorization') token: string) {
+    return this.authService.logout(token);
+  }
+
+  @Post('refresh-token')
+  refreshToken(@Headers('Authorization') token: string) {
+    return this.authService.refreshToken(token);
   }
 }

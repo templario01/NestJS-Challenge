@@ -22,11 +22,8 @@ export class JwtService {
     try {
       const verifiedToken = jwt.verify(token, secret) as JWTPayload;
       if (verifiedToken.type !== type) {
-        // return { status: 400, message: 'invalid token' };
         throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
       }
-
-      // return { status: 201, message: 'token verified' };
       return verifiedToken;
     } catch (e) {
       console.log(e);
@@ -37,12 +34,9 @@ export class JwtService {
             'new token sent to email',
             HttpStatus.CONTINUE,
           );
-          // return { status: 100, message: 'new token sent to email' };
         }
-        // return { status: 498, message: 'token expired' };
         throw new HttpException('token expired', HttpStatus.UNAUTHORIZED);
       }
-      // return { status: 500, message: 'token error' };
       throw new HttpException('token error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   };
