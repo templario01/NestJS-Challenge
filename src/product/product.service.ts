@@ -84,9 +84,12 @@ export class ProductService {
     id: number,
     updateProductDto: UpdateProductDto,
   ) => {
+    let query = null;
     if (updateProductDto.categoryName.length == 0) {
-      // actualizar solo los campos no relacionados
-      // return query;
+      // query = this.prismaService.product.update({
+
+      // })
+      console.log('hacer consulta');
     }
 
     const categories = await this.prismaService.category.findMany({
@@ -107,7 +110,7 @@ export class ProductService {
     const newCategoriesProduct = updateProductDto.categoryName;
 
     // #1 romper conexiones con todas las categorias
-    const query = await this.prismaService.product.update({
+    query = await this.prismaService.product.update({
       where: {
         id: id,
       },
