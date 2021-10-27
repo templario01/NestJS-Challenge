@@ -14,6 +14,16 @@ export class CartService {
     if (quantity > product.stock) {
       throw new BadRequestException('insuficient stock');
     }
+    await this.prismaService.product.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        stock: {
+          decrement: quantity,
+        },
+      },
+    });
     const updatedCart = await this.prismaService.cart.update({
       include: { products: true },
       data: {
@@ -68,6 +78,16 @@ export class CartService {
     if (!productInCart) {
       throw new BadRequestException('no such product in your cart');
     }
+    await this.prismaService.product.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        stock: {
+          increment: productInCart.products[0].quantity,
+        },
+      },
+    });
     const cartUpdated = await this.prismaService.cart.update({
       where: {
         uuid,
@@ -91,7 +111,7 @@ export class CartService {
     return cartUpdated;
   };
 
-  getCart = async (uuid) => {
+  getCart = async (uuid: string) => {
     const cart = await this.prismaService.cart.findUnique({
       where: {
         uuid,

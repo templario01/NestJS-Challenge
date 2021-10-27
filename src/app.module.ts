@@ -11,6 +11,7 @@ import { CommonModule } from './common/common.module';
 import { ImageRepositoryService } from './repositories/image-repository/image-repository.service';
 import { ImageRepositoryModule } from './repositories/image-repository/image-repository.module';
 import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -19,8 +20,9 @@ import { CartModule } from './cart/cart.module';
     ProductModule,
     CategoryModule,
     CommonModule,
-    CartModule
+    CartModule,
     ImageRepositoryModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService, SendgridService, ImageRepositoryService],
