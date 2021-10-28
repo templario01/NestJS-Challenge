@@ -8,10 +8,9 @@ import { SendgridService } from './common/services/sendgrid/sendgrid.service';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { CommonModule } from './common/common.module';
-import { ImageRepositoryService } from './repositories/image-repository/image-repository.service';
-import { ImageRepositoryModule } from './repositories/image-repository/image-repository.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
+import { AttachmentModule } from './attachment/attachment.module';
 
 @Module({
   imports: [
@@ -21,10 +20,10 @@ import { OrderModule } from './order/order.module';
     CategoryModule,
     CommonModule,
     CartModule,
-    ImageRepositoryModule,
     OrderModule,
+    AttachmentModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtService, SendgridService, ImageRepositoryService],
+  providers: [AppService, JwtService, SendgridService],
 })
 export class AppModule {}
