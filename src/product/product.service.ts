@@ -1,16 +1,23 @@
+import { Attachment } from '.prisma/client';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AttachmentService } from 'src/attachment/attachment.service';
+import { AttachmentDto } from 'src/attachment/dto/attachment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly attachmentsService: AttachmentService,
+  ) {}
 
   findAll = async () => {
     const query = await this.prismaService.product.findMany({
@@ -214,4 +221,28 @@ export class ProductService {
     });
     return query;
   };
+
+  async uploadImagesToProduct(
+    productId: number,
+    content: ContentTypeDto,
+  ): Promise<AttachmentDto> {
+    const product = await this.prismaService.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) {
+      throw new NotFoundException();
+    }
+    const attachment = await this.attachmentsService.uploadImages(
+      productId,
+      content.contentType,
+    );
+    if (!attachment) {
+      throw new NotFoundException();
+    }
+    await this.prismaService.product.update({
+      where: { id: product.id },
+      data: { images: { connect: { id: attachment.id } } },
+    });
+    return attachment;
+  }
 }

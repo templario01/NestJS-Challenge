@@ -6,7 +6,10 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
+import { AdminGuard } from 'src/common/guards/admin.guard';
+import { jwtAuthGuard } from 'src/common/guards/token.guard';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -19,11 +22,13 @@ export class CategoryController {
     return this.categoryService.findAll();
   }
 
+  @UseGuards(jwtAuthGuard, AdminGuard)
   @Post()
   createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.createCategory(createCategoryDto);
   }
 
+  @UseGuards(jwtAuthGuard, AdminGuard)
   @Put(':id')
   updateCategory(
     @Param('id') id: string,
@@ -32,6 +37,7 @@ export class CategoryController {
     return this.categoryService.updateCategory(Number(id), updateCategoryDto);
   }
 
+  @UseGuards(jwtAuthGuard, AdminGuard)
   @Delete(':id')
   deleteCategory(@Param('id') id: string) {
     return this.categoryService.deleteCategory(Number(id));

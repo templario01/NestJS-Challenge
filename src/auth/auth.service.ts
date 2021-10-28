@@ -19,6 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
   async signup(user: CreateUserDto) {
+    console.log('dsfer');
     const userExists = await this.prismaService.user.findUnique({
       where: {
         email: user.email,
