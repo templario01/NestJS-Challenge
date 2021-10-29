@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { config as configAWS, S3 } from 'aws-sdk';
 import { plainToClass } from 'class-transformer';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import attachmentConfig from './config/attachment.config';
 import { AttachmentDto } from './dto/attachment.dto';
 import { nanoid } from 'nanoid';

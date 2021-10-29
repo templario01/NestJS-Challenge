@@ -27,15 +27,15 @@ export class OrderController {
     return this.orderService.getOrders(paginationQueryDto);
   }
 
+  @UseGuards(jwtAuthGuard)
+  @Get('me')
+  getMyOrders(@Request() req) {
+    return this.orderService.getMyOrders(req.user.uuid);
+  }
+
   @UseGuards(jwtAuthGuard, AdminGuard)
   @Get(':uuid')
   getOrder(@Param() uuid: string) {
     return this.orderService.getOrder(uuid);
-  }
-
-  @UseGuards(jwtAuthGuard)
-  @Get('/me')
-  getMyOrders(@Request() req) {
-    return this.orderService.getMyOrders(req.user.uuid);
   }
 }

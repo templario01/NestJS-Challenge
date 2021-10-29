@@ -9,8 +9,8 @@ export enum TypesEnum {
 }
 
 export class ContentTypeDto {
-  // @IsString()
-  // @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   @ApiProperty({ description: 'The content type', enum: TypesEnum })
   contentType: TypesEnum;
 }

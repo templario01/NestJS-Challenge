@@ -4,10 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttachmentService } from 'src/attachment/attachment.service';
-import { AttachmentDto } from 'src/attachment/dto/attachment.dto';
-import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { AttachmentService } from '../attachment/attachment.service';
+import { AttachmentDto } from '../attachment/dto/attachment.dto';
+import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -41,11 +41,22 @@ export class ProductService {
   };
 
   findByCategory = async (uuid: string) => {
+    let category;
+    try {
+      category = await this.prismaService.category.findFirst({
+        where: { uuid },
+      });
+    } catch (e) {
+      throw new NotFoundException('Category not found');
+    }
     return await this.prismaService.product.findMany({
       where: {
+        active: {
+          equals: true,
+        },
         category: {
-          every: {
-            uuid: uuid,
+          some: {
+            uuid: category.uuid,
           },
         },
       },
@@ -76,9 +87,9 @@ export class ProductService {
   };
 
   createProduct = async (createProductDto: CreateProductDto) => {
-    this.verifyCategories(createProductDto.categoryName);
+    await this.verifyCategories(createProductDto.categoryName);
 
-    const query = await this.prismaService.product.create({
+    const product = await this.prismaService.product.create({
       data: {
         name: createProductDto.name,
         stock: createProductDto.stock,
@@ -90,16 +101,15 @@ export class ProductService {
       },
       include: { category: { select: { name: true } } },
     });
-    return query;
+    return product;
   };
 
-  private verifyCategories = async (categoryName: string[]) => {
+  verifyCategories = async (categoryName: string[]) => {
     const categories = await this.prismaService.category.findMany({
       where: {
         name: { in: categoryName },
       },
     });
-
     const categoriesMap = categories.map((c) => c.name);
 
     categoryName.forEach((name) => {
@@ -128,7 +138,7 @@ export class ProductService {
       });
     }
 
-    this.verifyCategories(updateProductDto.categoryName);
+    await this.verifyCategories(updateProductDto.categoryName);
     // #2 comparar las categorias nuevas con las existentes
     // y eliminar las que ya no son nuevas
     const newCategoriesProduct = updateProductDto.categoryName;

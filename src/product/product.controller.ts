@@ -10,10 +10,10 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AdminGuard } from 'src/common/guards/admin.guard';
-import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
-import { jwtAuthGuard } from 'src/common/guards/token.guard';
-import { ContentTypeDto, TypesEnum } from './dto/content-type.dto';
+import { AdminGuard } from '../common/guards/admin.guard';
+import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
+import { jwtAuthGuard } from '../common/guards/token.guard';
+import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductService } from './product.service';
@@ -79,7 +79,6 @@ export class ProductController {
     @Param('uuid') productUuid: string,
     @Body() contentType: ContentTypeDto,
   ) {
-    const ct: ContentTypeDto = { contentType: TypesEnum.IMAGEPNG };
-    return this.productService.uploadImagesToProduct(productUuid, ct);
+    return this.productService.uploadImagesToProduct(productUuid, contentType);
   }
 }
