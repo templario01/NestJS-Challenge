@@ -10,7 +10,6 @@ import { nanoid } from 'nanoid';
 @Injectable()
 export class AttachmentService {
   private readonly s3: S3;
-  private readonly preSignedGetURL;
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -27,7 +26,10 @@ export class AttachmentService {
     this.s3 = new S3();
   }
 
-  async uploadImages(productId: number, type: string): Promise<AttachmentDto> {
+  async uploadImages(
+    productUuid: string,
+    type: string,
+  ): Promise<AttachmentDto> {
     let extension: string;
     if (type === 'image/png') {
       extension = 'png';
@@ -36,9 +38,21 @@ export class AttachmentService {
     } else {
       extension = 'jpeg';
     }
+
+    const findProduct = await this.prismaService.product.findUnique({
+      where: {
+        uuid: productUuid,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const idProduct = findProduct;
+
     const attachment = await this.prismaService.attachment.create({
       data: {
-        productId: productId,
+        productId: idProduct.id,
         key: nanoid(),
         contentType: type,
         ext: extension,

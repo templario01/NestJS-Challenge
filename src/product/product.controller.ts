@@ -6,9 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AdminGuard } from 'src/common/guards/admin.guard';
+import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { jwtAuthGuard } from 'src/common/guards/token.guard';
 import { ContentTypeDto, TypesEnum } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -20,18 +23,18 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  findAll(@Query() paginationQueryDto: PaginationQueryDto) {
+    return this.productService.findAll(paginationQueryDto);
   }
 
-  @Get(':id')
-  findProduct(@Param('id') id: number) {
-    return this.productService.findProduct(id);
+  @Get(':uuid')
+  findProduct(@Param('id') uuid: string) {
+    return this.productService.findProduct(uuid);
   }
 
-  @Get('category/:categoryId')
-  findByCategory(@Param('categoryId') categoryId: number) {
-    return this.productService.findByCategory(categoryId);
+  @Get('category/:categoryUuid')
+  findByCategory(@Param('categoryUuid') categoryUuid: string) {
+    return this.productService.findByCategory(categoryUuid);
   }
 
   @UseGuards(jwtAuthGuard, AdminGuard)
@@ -41,44 +44,42 @@ export class ProductController {
   }
 
   @UseGuards(jwtAuthGuard, AdminGuard)
-  @Patch(':id')
+  @Patch(':uuid')
   updateProduct(
-    @Param('id') id: string,
+    @Param('uuid') uuid: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
     return this.productService.updateProductAndCategories(
-      Number(id),
+      uuid,
       updateProductDto,
     );
   }
 
   @UseGuards(jwtAuthGuard, AdminGuard)
-  @Delete(':id')
-  deleteProduct(@Param('id') id: string) {
-    return this.productService.deleteProduct(Number(id));
+  @Delete(':uuid')
+  deleteProduct(@Param('uuid') uuid: string) {
+    return this.productService.deleteProduct(uuid);
   }
 
   @UseGuards(jwtAuthGuard)
-  @Post(':id/like')
-  setLike(@Param('id') id: string) {
-    //aun no hay usuario
-    return this.productService.setLike(Number(id), 1);
+  @Post(':uuid/like')
+  setLike(@Param('uuid') uuid: string, @Request() req) {
+    return this.productService.setLike(uuid, req.user.uuid);
   }
 
   @UseGuards(jwtAuthGuard)
-  @Delete(':id/removelike')
-  removeLike(@Param('id') id: string) {
-    //aun no hay usuario
-    return this.productService.deleteLike(Number(id), 1);
+  @Delete(':uuid/removelike')
+  removeLike(@Param('uuid') uuid: string, @Request() req) {
+    return this.productService.deleteLike(uuid, req.user.uuid);
   }
 
   @UseGuards(jwtAuthGuard, AdminGuard)
-  @Post(':id/uploadfile')
+  @Post(':uuid/uploadfile')
   createAttachment(
-    @Param('id') productId: number,
+    @Param('uuid') productUuid: string,
     @Body() contentType: ContentTypeDto,
   ) {
     const ct: ContentTypeDto = { contentType: TypesEnum.IMAGEPNG };
-    return this.productService.uploadImagesToProduct(productId, ct);
+    return this.productService.uploadImagesToProduct(productUuid, ct);
   }
 }

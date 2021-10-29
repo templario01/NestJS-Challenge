@@ -31,15 +31,15 @@ export class CategoryController {
   @UseGuards(jwtAuthGuard, AdminGuard)
   @Put(':id')
   updateCategory(
-    @Param('id') id: string,
+    @Param('id') uuid: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoryService.updateCategory(Number(id), updateCategoryDto);
+    return this.categoryService.updateCategory(uuid, updateCategoryDto);
   }
 
   @UseGuards(jwtAuthGuard, AdminGuard)
   @Delete(':id')
-  deleteCategory(@Param('id') id: string) {
-    return this.categoryService.deleteCategory(Number(id));
+  deleteCategory(@Param('id') uuid: string) {
+    return this.categoryService.deleteCategory(uuid);
   }
 }
