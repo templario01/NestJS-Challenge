@@ -12,13 +12,13 @@ datasource db {
 
 enum Role {
   user
-  moderator
+  manager
 }
 
 enum TokenType {
   refresh
   session
-  veryfication
+  verification
 }
 
 model User {
@@ -27,7 +27,7 @@ model User {
   name          String
   email         String        @unique
   password      String
-  role          Role
+  role          Role          @default(user)
   veryfiedAt    DateTime?     @map(name: "veryfied_at")
   createdAt     DateTime      @default(now()) @map(name: "created_at")
   updatedAt     DateTime      @updatedAt @map(name: "updated_at")
@@ -68,10 +68,9 @@ model Product {
   name          String         @db.VarChar(20)
   stock         Int            @db.Integer
   price         Decimal        @db.Money
-  likes         Int            @db.Integer
+  likes         Int            @default(0) @db.Integer
   active        Boolean        @db.Boolean
-  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId    Int            @map("category_id")
+  category      Category[]
   images        Attachment[]
   productsLikes ProductLike[]
   cart          CartProduct[]
@@ -93,7 +92,7 @@ model ProductLike {
 model Cart {
   id        Int           @id @default(autoincrement())
   uuid      String        @unique @default(uuid()) @db.Uuid
-  total     Decimal       @db.Money
+  total     Decimal       @default(0) @db.Money
   createdAt DateTime      @default(now()) @map(name: "created_at")
   updatedAt DateTime      @updatedAt @map(name: "updated_at")
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -108,8 +107,10 @@ model CartProduct {
   cartId    Int     @map(name: "cart_id")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int     @unique
+  quantity  Int
 
   @@id([productId, cartId])
+  @@map("cart_products")
 }
 
 model Order {
@@ -129,8 +130,10 @@ model OrderProduct {
   orderId   Int     @map(name: "order_id")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int     @unique
+  quantity  Int
 
   @@id([productId, orderId])
+  @@map("order_products")
 }
 
 model Attachment {
