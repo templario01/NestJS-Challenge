@@ -212,7 +212,7 @@ describe('ProductService', () => {
         await service.deleteProduct('not-found');
       } catch (e) {
         expect(e).toBeInstanceOf(NotFoundException);
-        expect(e.message).toBe(`Product #not-found not found`);
+        expect(e.message).toBe('Product #not-found not found');
       }
     });
   });
@@ -220,7 +220,7 @@ describe('ProductService', () => {
   describe('setLike', () => {
     it('should set like', async () => {
       const productUpdated = await service.setLike(product.uuid, user.uuid);
-      expect(productUpdated.likes).toBe(1);
+      expect(productUpdated.message).toBeDefined();
     });
     it('should throw user already have like in product', async () => {
       expect.assertions(2);
@@ -238,7 +238,7 @@ describe('ProductService', () => {
   describe('deleteLike', () => {
     it('should delete like', async () => {
       const productUpdated = await service.deleteLike(product.uuid, user.uuid);
-      expect(productUpdated.likes).toBe(0);
+      expect(productUpdated.message).toBeDefined();
     });
     it('should throw like not found', async () => {
       expect.assertions(2);
@@ -274,7 +274,7 @@ describe('ProductService', () => {
         });
       } catch (e) {
         expect(e).toBeInstanceOf(NotFoundException);
-        expect(e.message).toBe(`Product #not-found not found`);
+        expect(e.message).toBe('Product #not-found not found');
       }
     });
   });

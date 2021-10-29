@@ -96,4 +96,8 @@ describe('CategoryService', () => {
       new NotFoundException(`Category #${uuid} not found`),
     );
   });
+
+  it('should return all categories', async () => {
+    await expect(service.findAll()).resolves.toBeInstanceOf(Array);
+  });
 });

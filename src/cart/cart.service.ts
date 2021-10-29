@@ -118,7 +118,7 @@ export class CartService {
         },
       },
     });
-    const cartUpdated = await this.prismaService.cart.update({
+    const updatedCart = await this.prismaService.cart.update({
       where: {
         uuid,
       },
@@ -135,10 +135,26 @@ export class CartService {
         },
       },
       include: {
-        products: true,
+        products: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
-    return cartUpdated;
+    return plainToClass(CartResponseDto, {
+      ...updatedCart,
+      total: updatedCart.total.toNumber(),
+      products: updatedCart.products.map((product) =>
+        plainToClass(CartProductDto, {
+          ...product,
+          product: plainToClass(CartProductDto, {
+            ...product.product,
+            price: product.product.price.toNumber(),
+          }),
+        }),
+      ),
+    });
   };
 
   getCart = async (uuid: string) => {
@@ -147,9 +163,25 @@ export class CartService {
         uuid,
       },
       include: {
-        products: true,
+        products: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
-    return cart;
+    return plainToClass(CartResponseDto, {
+      ...cart,
+      total: cart.total.toNumber(),
+      products: cart.products.map((product) =>
+        plainToClass(CartProductDto, {
+          ...product,
+          product: plainToClass(CartProductDto, {
+            ...product.product,
+            price: product.product.price.toNumber(),
+          }),
+        }),
+      ),
+    });
   };
 }

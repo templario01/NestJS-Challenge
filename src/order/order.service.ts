@@ -1,6 +1,8 @@
 import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { OrderResponseDto } from './dto/response-order.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class OrderService {
@@ -8,15 +10,59 @@ export class OrderService {
 
   getOrders = async (paginationQueryDto: PaginationQueryDto) => {
     const { limit, offset } = paginationQueryDto;
-    return await this.prismaService.order.findMany({
+    const orders = await this.prismaService.order.findMany({
       skip: offset,
       take: limit,
+      include: {
+        products: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
+    return orders.map((order) =>
+      plainToClass(OrderResponseDto, {
+        ...order,
+        total: order.total.toNumber(),
+        products: order.products.map((product) =>
+          plainToClass(OrderResponseDto, {
+            ...product,
+            product: plainToClass(OrderResponseDto, {
+              ...product.product,
+              price: product.product.price.toNumber(),
+            }),
+          }),
+        ),
+      }),
+    );
   };
 
   getOrder = async (uuid: string) => {
     try {
-      return await this.prismaService.order.findUnique({ where: { uuid } });
+      const order = await this.prismaService.order.findUnique({
+        where: { uuid },
+        include: {
+          products: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+      return plainToClass(OrderResponseDto, {
+        ...order,
+        total: order.total.toNumber(),
+        products: order.products.map((product) =>
+          plainToClass(OrderResponseDto, {
+            ...product,
+            product: plainToClass(OrderResponseDto, {
+              ...product.product,
+              price: product.product.price.toNumber(),
+            }),
+          }),
+        ),
+      });
     } catch (e) {
       throw new BadRequestException('No Order Found');
     }
@@ -28,7 +74,7 @@ export class OrderService {
         uuid,
       },
     });
-    return await this.prismaService.order.findMany({
+    const orders = await this.prismaService.order.findMany({
       where: {
         userId: user.id,
       },
@@ -40,6 +86,22 @@ export class OrderService {
         },
       },
     });
+
+    return orders.map((order) =>
+      plainToClass(OrderResponseDto, {
+        ...order,
+        total: order.total.toNumber(),
+        products: order.products.map((product) =>
+          plainToClass(OrderResponseDto, {
+            ...product,
+            product: plainToClass(OrderResponseDto, {
+              ...product.product,
+              price: product.product.price.toNumber(),
+            }),
+          }),
+        ),
+      }),
+    );
   };
 
   createOrder = async (cartUuid: string) => {
@@ -68,6 +130,13 @@ export class OrderService {
           },
         },
       },
+      include: {
+        products: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
     await this.prismaService.cart.update({
       where: {
@@ -80,6 +149,18 @@ export class OrderService {
         },
       },
     });
-    return order;
+    return plainToClass(OrderResponseDto, {
+      ...order,
+      total: order.total.toNumber(),
+      products: order.products.map((product) =>
+        plainToClass(OrderResponseDto, {
+          ...product,
+          product: plainToClass(OrderResponseDto, {
+            ...product.product,
+            price: product.product.price.toNumber(),
+          }),
+        }),
+      ),
+    });
   };
 }

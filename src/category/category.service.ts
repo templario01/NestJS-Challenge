@@ -3,7 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
+import { ResponseCategoryDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -12,16 +14,18 @@ export class CategoryService {
   constructor(private readonly prismaService: PrismaService) {}
 
   findAll = async () => {
-    const query = await this.prismaService.category.findMany();
-    return query;
+    const categories = await this.prismaService.category.findMany();
+    return categories.map((category) =>
+      plainToClass(ResponseCategoryDto, category),
+    );
   };
 
   createCategory = async (createCategoryDto: CreateCategoryDto) => {
     try {
-      const query = await this.prismaService.category.create({
+      const category = await this.prismaService.category.create({
         data: { name: createCategoryDto.name },
       });
-      return query;
+      return plainToClass(ResponseCategoryDto, category);
     } catch (error) {
       throw new BadRequestException('invalid name');
     }
@@ -32,7 +36,7 @@ export class CategoryService {
     updateCategoryDto: UpdateCategoryDto,
   ) => {
     try {
-      const query = await this.prismaService.category.update({
+      const category = await this.prismaService.category.update({
         where: {
           uuid: uuid,
         },
@@ -40,21 +44,20 @@ export class CategoryService {
           name: updateCategoryDto.name,
         },
       });
-      return query;
+      return plainToClass(ResponseCategoryDto, category);
     } catch (error) {
-      console.log(error);
       throw new NotFoundException('id not found');
     }
   };
 
   deleteCategory = async (uuid: string) => {
     try {
-      const query = await this.prismaService.category.delete({
+      const category = await this.prismaService.category.delete({
         where: {
           uuid: uuid,
         },
       });
-      return query;
+      return plainToClass(ResponseCategoryDto, category);
     } catch (error) {
       throw new NotFoundException(`Category #${uuid} not found`);
     }

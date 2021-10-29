@@ -18,7 +18,7 @@ const createEmail = (
   const msg: sgMail.MailDataRequired = {
     to,
     subject,
-    from: 'joelvaldezangeles@gmail.com',
+    from: process.env.SENDGRID_EMAIL,
     html: `<h1>${subject}</h1>
     <p>${message}</p><p>${link}</p>
     ${token ? `<p>or change the token in params<br>${token}</p>` : ''}`,
