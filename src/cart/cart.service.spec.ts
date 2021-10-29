@@ -1,6 +1,7 @@
 import { Cart, Product, User } from '.prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from './cart.service';
 
@@ -14,7 +15,8 @@ describe('CartService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CartService, PrismaService],
+      imports: [PrismaModule],
+      providers: [CartService],
     }).compile();
 
     service = module.get<CartService>(CartService);

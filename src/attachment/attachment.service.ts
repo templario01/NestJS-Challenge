@@ -48,11 +48,9 @@ export class AttachmentService {
       },
     });
 
-    const idProduct = findProduct;
-
     const attachment = await this.prismaService.attachment.create({
       data: {
-        productId: idProduct.id,
+        productId: findProduct.id,
         key: nanoid(),
         contentType: type,
         ext: extension,

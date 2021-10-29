@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { JwtService } from './common/services/jwt/jwt.service';
-import { SendgridService } from './common/services/sendgrid/sendgrid.service';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { CommonModule } from './common/common.module';
@@ -21,6 +20,6 @@ import { AttachmentModule } from './attachment/attachment.module';
     OrderModule,
     AttachmentModule,
   ],
-  providers: [JwtService, SendgridService],
+  providers: [JwtService],
 })
 export class AppModule {}

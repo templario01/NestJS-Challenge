@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from './services/jwt/jwt.service';
-import { SendgridService } from './services/sendgrid/sendgrid.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -17,13 +16,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       }),
     }),
   ],
-  providers: [
-    JwtService,
-    PrismaService,
-    SendgridService,
-    JwtStrategy,
-    ConfigService,
-  ],
+  providers: [JwtService, PrismaService, JwtStrategy, ConfigService],
   exports: [JwtService, PrismaService],
 })
 export class CommonModule {}

@@ -26,18 +26,4 @@ const createEmail = (
   return msg;
 };
 
-// const createReport = (to: string[], report: Report): MailDataRequired => {
-//   const msg: sgMail.MailDataRequired = {
-//     to: to.length === 0 ? 'joelvaldezangeles@gmail.com' : to,
-//     subject: `new ${report.type} reported`,
-//     from: 'joelvaldezangeles@gmail.com',
-//     html: `<h1>${report.title}</h1>
-//     <p>${report.content}</p>
-//     <p>report Id: ${report.id}</p>
-//     <p>created at: ${report.createdAt}</p>
-//     <p>see all reports at:<a href="${HOST}/api/v1/reports">Reports</a> with a bearer token in headers</p>`,
-//   };
-//   return msg;
-// };
-
 export { sgMail, createEmail, HOST };

@@ -6,6 +6,7 @@ import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
 import { CartService } from '../cart/cart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderService } from './order.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -18,7 +19,8 @@ describe('OrderService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrderService, PrismaService, CartService],
+      imports: [PrismaModule],
+      providers: [OrderService, CartService],
     }).compile();
 
     service = module.get<OrderService>(OrderService);

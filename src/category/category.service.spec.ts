@@ -1,5 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoryService } from './category.service';
 
@@ -9,7 +10,8 @@ describe('CategoryService', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CategoryService, PrismaService],
+      imports: [PrismaModule],
+      providers: [CategoryService],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
