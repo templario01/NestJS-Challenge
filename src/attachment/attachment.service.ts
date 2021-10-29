@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { config as configAWS, S3 } from 'aws-sdk';
 import { plainToClass } from 'class-transformer';
@@ -39,14 +39,19 @@ export class AttachmentService {
       extension = 'jpeg';
     }
 
-    const findProduct = await this.prismaService.product.findUnique({
-      where: {
-        uuid: productUuid,
-      },
-      select: {
-        id: true,
-      },
-    });
+    let findProduct = null;
+    try {
+      findProduct = await this.prismaService.product.findUnique({
+        where: {
+          uuid: productUuid,
+        },
+        select: {
+          id: true,
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException(`${productUuid} not found`);
+    }
 
     const attachment = await this.prismaService.attachment.create({
       data: {
@@ -66,14 +71,19 @@ export class AttachmentService {
   }
 
   async getImages(productUuid: string): Promise<string[]> {
-    const findProduct = await this.prismaService.product.findUnique({
-      where: {
-        uuid: productUuid,
-      },
-      select: {
-        id: true,
-      },
-    });
+    let findProduct = null;
+    try {
+      findProduct = await this.prismaService.product.findUnique({
+        where: {
+          uuid: productUuid,
+        },
+        select: {
+          id: true,
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException(`${productUuid} not found`);
+    }
     const idProduct = findProduct[0];
     const attachments = await this.prismaService.attachment.findMany({
       where: { productId: idProduct },
