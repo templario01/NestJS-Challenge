@@ -42,6 +42,7 @@ export class CategoryService {
       });
       return query;
     } catch (error) {
+      console.log(error);
       throw new NotFoundException('id not found');
     }
   };

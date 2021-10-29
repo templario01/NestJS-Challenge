@@ -25,10 +25,10 @@ describe('AuthService', () => {
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
-          useFactory: async (configService: ConfigService) => ({
-            secret: configService.get('JWT_SECRET') || 'ravn_nerdery',
+          useFactory: async () => ({
+            secret: 'ravn_nerdery',
             signOptions: {
-              expiresIn: configService.get('JWT_EXPIRES') || '1h',
+              expiresIn: '1h',
             },
           }),
         }),

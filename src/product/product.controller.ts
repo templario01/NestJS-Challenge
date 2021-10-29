@@ -27,6 +27,15 @@ export class ProductController {
     return this.productService.findAll(paginationQueryDto);
   }
 
+  @UseGuards(jwtAuthGuard, AdminGuard)
+  @Get('admin')
+  findAllAdmin(
+    @Query() paginationQueryDto: PaginationQueryDto,
+    @Request() req,
+  ) {
+    return this.productService.findAll(paginationQueryDto, req.user.uuid);
+  }
+
   @Get(':uuid')
   findProduct(@Param('uuid') uuid: string) {
     return this.productService.findProduct(uuid);

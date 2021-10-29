@@ -8,14 +8,10 @@ import {
   secret,
 } from '../../../common/helpers/jwt.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { SendgridService } from '../sendgrid/sendgrid.service';
 
 @Injectable()
 export class JwtService {
-  constructor(
-    private sendGridService: SendgridService,
-    private prismaService: PrismaService,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
   verifyToken = async (
     token,
     type: TokenType = 'session',
