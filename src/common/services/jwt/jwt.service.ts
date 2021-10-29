@@ -1,19 +1,20 @@
 import { TokenType } from '.prisma/client';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import { createEmail, HOST, sgMail } from '../../helpers/sendgrid.helper';
 import {
   generateToken,
   JWTPayload,
   secret,
-} from 'src/common/helpers/jwt.helper';
-import { PrismaService } from 'src/prisma/prisma.service';
+} from '../../../common/helpers/jwt.helper';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { SendgridService } from '../sendgrid/sendgrid.service';
 
 @Injectable()
 export class JwtService {
   constructor(
     private sendGridService: SendgridService,
-    private prismaSerive: PrismaService,
+    private prismaService: PrismaService,
   ) {}
   verifyToken = async (
     token,
@@ -29,11 +30,8 @@ export class JwtService {
       console.log(e);
       if (e instanceof jwt.TokenExpiredError) {
         if (type === 'verification') {
-          // send new token to email
-          throw new HttpException(
-            'new token sent to email',
-            HttpStatus.CONTINUE,
-          );
+          await this.sendNewVerification(token);
+          throw new HttpException('expired Token', HttpStatus.CONTINUE);
         }
         throw new HttpException('token expired', HttpStatus.UNAUTHORIZED);
       }
@@ -44,9 +42,39 @@ export class JwtService {
     const token = generateToken(data);
     const date = new Date();
     date.setHours(date.getHours() + 1);
-    const tokenCreated = await this.prismaSerive.token.create({
+    const tokenCreated = await this.prismaService.token.create({
       data: { token, userId, type: data.type, expiresAt: date },
     });
     return tokenCreated;
+  };
+  sendNewVerification = async (token: string): Promise<void> => {
+    const tokenToUpdate = await this.prismaService.token.findFirst({
+      where: { token },
+    });
+    const user = await this.prismaService.user.findUnique({
+      where: { id: tokenToUpdate.userId },
+    });
+    const data: JWTPayload = {
+      role: user.role,
+      type: 'verification',
+      uuid: user.uuid,
+    };
+    const date = new Date();
+    date.setHours(date.getHours() + 1);
+    const newToken = await this.prismaService.token.update({
+      where: { id: tokenToUpdate.id },
+      data: {
+        token: generateToken(data),
+        expiresAt: date,
+      },
+    });
+    const msg = createEmail(
+      user.email,
+      `token signup`,
+      `Hello ${user.name} use patch to this url to verify your account`,
+      `http://${HOST}/users/${newToken.token}/verify`,
+      newToken.token,
+    );
+    await sgMail.send(msg);
   };
 }
