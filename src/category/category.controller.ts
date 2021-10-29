@@ -8,8 +8,8 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { AdminGuard } from 'src/common/guards/admin.guard';
-import { jwtAuthGuard } from 'src/common/guards/token.guard';
+import { AdminGuard } from '../common/guards/admin.guard';
+import { jwtAuthGuard } from '../common/guards/token.guard';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';

@@ -1,8 +1,8 @@
 import { Cart, Product, User } from '.prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { async } from 'rxjs';
-import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
+import { plainToClass } from 'class-transformer';
+import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
 import { CartService } from '../cart/cart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderService } from './order.service';
@@ -12,7 +12,7 @@ describe('OrderService', () => {
   let prisma: PrismaService;
   let cartService: CartService;
   let product1: Product;
-  let product2: Product;
+  // let product2: Product;
   let user: User;
   let cart: Cart;
 
@@ -47,7 +47,7 @@ describe('OrderService', () => {
         },
       },
     });
-    product2 = await prisma.product.create({
+    await prisma.product.create({
       data: {
         active: true,
         name: 'Product 3',
@@ -101,14 +101,18 @@ describe('OrderService', () => {
   });
   describe('getOrders', () => {
     it('should return an array of orders', async () => {
-      const orders = await service.getOrders({} as PaginationQueryDto);
+      const orders = await service.getOrders(
+        plainToClass(PaginationQueryDto, {}),
+      );
       expect(orders).toBeDefined();
       expect(orders.length).toBe(1);
     });
   });
   describe('getOrder', () => {
     it('should return an order', async () => {
-      const orders = await service.getOrders({} as PaginationQueryDto);
+      const orders = await service.getOrders(
+        plainToClass(PaginationQueryDto, {}),
+      );
       const order = await service.getOrder(orders[0].uuid);
       expect(order).toBeDefined();
     });

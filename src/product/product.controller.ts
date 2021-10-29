@@ -10,9 +10,9 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AdminGuard } from 'src/common/guards/admin.guard';
-import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
-import { jwtAuthGuard } from 'src/common/guards/token.guard';
+import { AdminGuard } from '../common/guards/admin.guard';
+import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
+import { jwtAuthGuard } from '../common/guards/token.guard';
 import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';

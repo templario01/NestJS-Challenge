@@ -91,7 +91,6 @@ describe('CartService', () => {
       try {
         await service.addToCart('', cart.uuid, 1);
       } catch (e) {
-        console.log(e);
         expect(e).toBeInstanceOf(BadRequestException);
         expect(e.message).toBe("Product doesn't exists");
       }
