@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { jwtAuthGuard } from 'src/common/guards/token.guard';
+import { jwtAuthGuard } from '../common/guards/token.guard';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -30,7 +30,7 @@ export class AuthController {
 
   @Post('login')
   login(@Body() body: LoginUserDto) {
-    return this.authService.login(body);
+    return this.authService.signin(body);
   }
 
   @UseGuards(jwtAuthGuard)

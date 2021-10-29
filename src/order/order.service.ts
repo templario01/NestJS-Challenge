@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OrderService {
@@ -14,8 +15,12 @@ export class OrderService {
     });
   };
 
-  getOrder = async (id: number) => {
-    return await this.prismaService.order.findUnique({ where: { id } });
+  getOrder = async (uuid: string) => {
+    try {
+      return await this.prismaService.order.findUnique({ where: { uuid } });
+    } catch (e) {
+      throw new BadRequestException('No Order Found');
+    }
   };
 
   getMyOrders = async (uuid: string) => {
@@ -48,6 +53,9 @@ export class OrderService {
       },
     });
     const products = cartProducts.products;
+    if (products.length === 0) {
+      throw new BadRequestException('Cart is empty');
+    }
     const order = await this.prismaService.order.create({
       data: {
         total: cartProducts.total,
@@ -69,7 +77,7 @@ export class OrderService {
       data: {
         total: 0,
         products: {
-          set: [],
+          deleteMany: {},
         },
       },
     });

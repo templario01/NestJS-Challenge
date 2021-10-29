@@ -1,14 +1,15 @@
 import {
+  HttpException,
   Injectable,
   NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { compare, hashPassword } from 'src/common/helpers/encrypt.helper';
-import { generateToken, JWTPayload } from 'src/common/helpers/jwt.helper';
-import { createEmail, HOST, sgMail } from 'src/common/helpers/sendgrid.helper';
-import { JwtService } from 'src/common/services/jwt/jwt.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { compare, hashPassword } from '../common/helpers/encrypt.helper';
+import { generateToken, JWTPayload } from '../common/helpers/jwt.helper';
+import { createEmail, HOST, sgMail } from '../common/helpers/sendgrid.helper';
+import { JwtService } from '../common/services/jwt/jwt.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 
@@ -19,7 +20,6 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
   async signup(user: CreateUserDto) {
-    console.log('dsfer');
     const userExists = await this.prismaService.user.findUnique({
       where: {
         email: user.email,
@@ -75,24 +75,24 @@ export class AuthService {
     return { message: 'Account verified' };
   };
 
-  login = async (user: LoginUserDto) => {
+  signin = async (user: LoginUserDto) => {
     const userFound = await this.prismaService.user.findUnique({
       where: { email: user.email },
     });
+    if (!userFound) {
+      throw new NotFoundException('Invalid email or password');
+    }
     const cart = await this.prismaService.cart.findFirst({
       where: {
         userId: userFound.id,
       },
     });
-    if (!userFound) {
-      throw new NotFoundException('no user found');
-    }
     if (!userFound.veryfiedAt) {
-      throw new UnauthorizedException('user not verified');
+      throw new UnauthorizedException('User not verified');
     }
     const validPassword = compare(user.password, userFound.password);
     if (!validPassword) {
-      throw new UnauthorizedException('email or password incorrect');
+      throw new UnauthorizedException('Invalid email or password');
     }
     const tokenPayload: JWTPayload = {
       role: userFound.role,
@@ -112,7 +112,7 @@ export class AuthService {
         token: token.split(' ')[1],
       },
     });
-    return { message: 'logged out' };
+    return { message: 'Logged out' };
   };
 
   refreshToken = async (token: string) => {
@@ -122,8 +122,8 @@ export class AuthService {
         token: tokenString,
       },
     });
-    if (!tokenString || tokenFound) {
-      throw new NotFoundException('no token found');
+    if (!tokenString || !tokenFound) {
+      throw new UnauthorizedException('No token found');
     }
     const user = await this.prismaService.user.findUnique({
       where: { id: tokenFound.userId },
@@ -145,6 +145,6 @@ export class AuthService {
         expiresAt: date,
       },
     });
-    return { message: 'session refreshed' };
+    return { token: newToken, expiration: date };
   };
 }

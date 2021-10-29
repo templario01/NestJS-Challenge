@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from './services/jwt/jwt.service';
 import { SendgridService } from './services/sendgrid/sendgrid.service';
 import { JwtStrategy } from './strategies/jwt.strategy';

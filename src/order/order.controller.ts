@@ -27,10 +27,10 @@ export class OrderController {
     return this.orderService.getOrders(paginationQueryDto);
   }
 
-  @UseGuards(jwtAuthGuard)
-  @Get(':id')
-  getOrder(@Param() id: number) {
-    return this.orderService.getOrder(id);
+  @UseGuards(jwtAuthGuard, AdminGuard)
+  @Get(':uuid')
+  getOrder(@Param() uuid: string) {
+    return this.orderService.getOrder(uuid);
   }
 
   @UseGuards(jwtAuthGuard)

@@ -15,23 +15,23 @@ import { CartService } from './cart.service';
 export class CartController {
   constructor(private cartService: CartService) {}
   @UseGuards(jwtAuthGuard)
-  @Post(':id')
+  @Post(':uuid')
   addToCart(
-    @Param('id') productId: number,
+    @Param('uuid') productUuid: string,
     @Request() req,
     @Body() { quantity },
   ) {
     return this.cartService.addToCart(
-      productId,
+      productUuid,
       req.user.cartUuid,
       quantity || 1,
     );
   }
 
   @UseGuards(jwtAuthGuard)
-  @Delete(':id')
-  deleteFromCart(@Param('id') productId: number, @Request() req) {
-    return this.cartService.removeFromCart(productId, req.user.cartUuid);
+  @Delete(':uuid')
+  deleteFromCart(@Param('uuid') productUuid: string, @Request() req) {
+    return this.cartService.removeFromCart(productUuid, req.user.cartUuid);
   }
 
   @UseGuards(jwtAuthGuard)

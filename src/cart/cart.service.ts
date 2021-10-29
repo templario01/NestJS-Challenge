@@ -1,22 +1,25 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CartService {
   constructor(private prismaService: PrismaService) {}
-  addToCart = async (productId: number, uuid: string, quantity: number) => {
-    const product = await this.prismaService.product.findUnique({
-      where: { id: productId },
-    });
-    if (!product) {
-      throw new BadRequestException("product doesn't exits");
+  addToCart = async (productUuid: string, uuid: string, quantity: number) => {
+    let product;
+    try {
+      product = await this.prismaService.product.findUnique({
+        where: { uuid: productUuid },
+        rejectOnNotFound: false,
+      });
+    } catch (e) {
+      throw new BadRequestException("Product doesn't exists");
     }
     if (quantity > product.stock) {
-      throw new BadRequestException('insuficient stock');
+      throw new BadRequestException('Insufficient stock');
     }
     await this.prismaService.product.update({
       where: {
-        id: productId,
+        uuid: productUuid,
       },
       data: {
         stock: {
@@ -33,7 +36,7 @@ export class CartService {
         products: {
           upsert: {
             where: {
-              productId,
+              productId: product.id,
             },
             update: {
               quantity: {
@@ -42,7 +45,7 @@ export class CartService {
             },
             create: {
               quantity,
-              productId,
+              productId: product.id,
             },
           },
         },
@@ -54,7 +57,7 @@ export class CartService {
     return updatedCart;
   };
 
-  removeFromCart = async (productId: number, uuid: string) => {
+  removeFromCart = async (productUuid: string, uuid: string) => {
     const productInCart = await this.prismaService.cart.findFirst({
       include: {
         products: {
@@ -62,7 +65,9 @@ export class CartService {
             product: true,
           },
           where: {
-            productId,
+            product: {
+              uuid: productUuid,
+            },
           },
         },
       },
@@ -70,17 +75,19 @@ export class CartService {
         uuid,
         products: {
           some: {
-            productId,
+            product: {
+              uuid: productUuid,
+            },
           },
         },
       },
     });
     if (!productInCart) {
-      throw new BadRequestException('no such product in your cart');
+      throw new BadRequestException('No such product in your cart');
     }
     await this.prismaService.product.update({
       where: {
-        id: productId,
+        uuid: productUuid,
       },
       data: {
         stock: {
@@ -100,7 +107,7 @@ export class CartService {
         },
         products: {
           delete: {
-            productId,
+            productId: productInCart.products[0].product.id,
           },
         },
       },
