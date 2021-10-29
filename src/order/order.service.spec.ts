@@ -1,4 +1,4 @@
-import { Cart, Product, User } from '.prisma/client';
+import { Product, User } from '.prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { plainToClass } from 'class-transformer';
@@ -7,6 +7,7 @@ import { CartService } from '../cart/cart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderService } from './order.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { CartResponseDto } from '../cart/dto/cart-response.dto';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -15,7 +16,7 @@ describe('OrderService', () => {
   let product1: Product;
   // let product2: Product;
   let user: User;
-  let cart: Cart;
+  let cart: CartResponseDto;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -75,10 +76,14 @@ describe('OrderService', () => {
         },
       },
     });
-    cart = await prisma.cart.findUnique({
+    const cart1 = await prisma.cart.findUnique({
       where: {
         userId: user.id,
       },
+    });
+    cart = plainToClass(CartResponseDto, {
+      ...cart1,
+      total: cart1.total.toNumber(),
     });
     cart = await cartService.addToCart(product1.uuid, cart.uuid, 1);
   });

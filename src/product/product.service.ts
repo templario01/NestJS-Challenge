@@ -13,6 +13,8 @@ import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ReadImageProductDto } from './dto/read-image-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductResponseDto } from './dto/product-response.dto';
+import { MessageResponseDto } from 'src/common/dto/message-response.dto';
 
 @Injectable()
 export class ProductService {
@@ -21,7 +23,10 @@ export class ProductService {
     private readonly attachmentsService: AttachmentService,
   ) {}
 
-  findAll = async (paginationQueryDto: PaginationQueryDto, uuid = '') => {
+  findAll = async (
+    paginationQueryDto: PaginationQueryDto,
+    uuid = '',
+  ): Promise<ProductResponseDto[]> => {
     const { limit, offset } = paginationQueryDto;
     const query = await this.prismaService.product.findMany({
       skip: offset,
@@ -37,12 +42,19 @@ export class ProductService {
         active: true,
         name: true,
         category: { select: { name: true } },
+        likes: true,
       },
     });
-    return query;
+    const response = query.map((product) =>
+      plainToClass(ProductResponseDto, {
+        ...product,
+        price: product.price.toNumber(),
+      }),
+    );
+    return response;
   };
 
-  findByCategory = async (uuid: string) => {
+  findByCategory = async (uuid: string): Promise<ProductResponseDto[]> => {
     let category;
     try {
       category = await this.prismaService.category.findFirst({
@@ -51,7 +63,7 @@ export class ProductService {
     } catch (e) {
       throw new NotFoundException('Category not found');
     }
-    return await this.prismaService.product.findMany({
+    const products = await this.prismaService.product.findMany({
       where: {
         active: {
           equals: true,
@@ -63,9 +75,16 @@ export class ProductService {
         },
       },
     });
+    const response = products.map((product) =>
+      plainToClass(ProductResponseDto, {
+        ...product,
+        price: product.price.toNumber(),
+      }),
+    );
+    return response;
   };
 
-  findProduct = async (uuid: string) => {
+  findProduct = async (uuid: string): Promise<ProductResponseDto> => {
     try {
       const query = await this.prismaService.product.findUnique({
         where: {
@@ -91,14 +110,15 @@ export class ProductService {
         imagesUrl,
       });
 
-      product.imagesUrl = imagesUrl;
-      return product;
+      return plainToClass(ProductResponseDto, product);
     } catch (error) {
       throw new NotFoundException(`Product #${uuid} not found`);
     }
   };
 
-  createProduct = async (createProductDto: CreateProductDto) => {
+  createProduct = async (
+    createProductDto: CreateProductDto,
+  ): Promise<ProductResponseDto> => {
     await this.verifyCategories(createProductDto.categoryName);
 
     const product = await this.prismaService.product.create({
@@ -113,10 +133,13 @@ export class ProductService {
       },
       include: { category: { select: { name: true } } },
     });
-    return product;
+    return plainToClass(ProductResponseDto, {
+      ...product,
+      price: product.price.toNumber(),
+    });
   };
 
-  verifyCategories = async (categoryName: string[]) => {
+  verifyCategories = async (categoryName: string[]): Promise<void> => {
     const categories = await this.prismaService.category.findMany({
       where: {
         name: { in: categoryName },
@@ -134,13 +157,13 @@ export class ProductService {
   updateProductAndCategories = async (
     uuid: string,
     updateProductDto: UpdateProductDto,
-  ) => {
+  ): Promise<ProductResponseDto> => {
     // let query = null;
     if (
       !updateProductDto.categoryName ||
       updateProductDto.categoryName.length == 0
     ) {
-      return await this.prismaService.product.update({
+      const product = await this.prismaService.product.update({
         where: {
           uuid: uuid,
         },
@@ -153,6 +176,10 @@ export class ProductService {
         include: {
           category: true,
         },
+      });
+      return plainToClass(ProductResponseDto, {
+        ...product,
+        price: product.price.toNumber(),
       });
     }
 
@@ -175,7 +202,7 @@ export class ProductService {
     });
 
     // #2 asignar las nuevas conexiones con categorias
-    return await this.prismaService.product.update({
+    const product = await this.prismaService.product.update({
       where: {
         uuid,
       },
@@ -192,16 +219,20 @@ export class ProductService {
         category: true,
       },
     });
+    return plainToClass(ProductResponseDto, {
+      ...product,
+      price: product.price.toNumber(),
+    });
   };
 
-  deleteProduct = async (uuid: string) => {
+  deleteProduct = async (uuid: string): Promise<MessageResponseDto> => {
     try {
       await this.prismaService.product.delete({
         where: {
           uuid: uuid,
         },
       });
-      return { content: `Product #${uuid} deleted successfull` };
+      return { message: `Product #${uuid} deleted successfull` };
     } catch (error) {
       throw new NotFoundException(`Product #${uuid} not found`);
     }

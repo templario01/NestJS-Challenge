@@ -1,5 +1,10 @@
 import { TokenType } from '.prisma/client';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { createEmail, HOST, sgMail } from '../../helpers/sendgrid.helper';
 import {
@@ -16,23 +21,24 @@ export class JwtService {
     token,
     type: TokenType = 'session',
   ): Promise<JWTPayload> => {
+    let verifiedToken;
     try {
-      const verifiedToken = jwt.verify(token, secret) as JWTPayload;
-      if (verifiedToken.type !== type) {
-        throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
-      }
-      return verifiedToken;
+      verifiedToken = jwt.verify(token, secret) as JWTPayload;
     } catch (e) {
       console.log(e);
       if (e instanceof jwt.TokenExpiredError) {
         if (type === 'verification') {
           await this.sendNewVerification(token);
-          throw new HttpException('expired Token', HttpStatus.CONTINUE);
+          throw new HttpException('New verification send', HttpStatus.CONTINUE);
         }
-        throw new HttpException('token expired', HttpStatus.UNAUTHORIZED);
+        throw new BadRequestException('Expired token');
       }
       throw new HttpException('token error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    if (verifiedToken.type !== type) {
+      throw new BadRequestException('Invalid token');
+    }
+    return verifiedToken;
   };
   createToken = async (data: JWTPayload, userId: number) => {
     const token = generateToken(data);

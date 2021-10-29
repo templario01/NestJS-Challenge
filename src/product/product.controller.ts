@@ -10,6 +10,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
 import { jwtAuthGuard } from '../common/guards/token.guard';
@@ -18,6 +19,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductService } from './product.service';
 
+@ApiTags('Product')
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
