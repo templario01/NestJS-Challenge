@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';

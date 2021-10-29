@@ -3,26 +3,27 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoryService } from './category.service';
 
-const prisma = new PrismaService();
-
-beforeEach(async () => {
-  await prisma.$connect();
-  await prisma.category.deleteMany();
-});
-
-afterAll(async () => {
-  await prisma.$disconnect();
-});
-
 describe('CategoryService', () => {
   let service: CategoryService;
+  let prisma: PrismaService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [CategoryService, PrismaService],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
+    prisma = module.get<PrismaService>(PrismaService);
+    await prisma.$connect();
+    await prisma.category.deleteMany();
+    await prisma.category.createMany({
+      data: [
+        { name: 'category1' },
+        { name: 'category2' },
+        { name: 'category3' },
+        { name: 'category4' },
+      ],
+    });
   });
 
   it('should be defined', () => {
@@ -50,17 +51,18 @@ describe('CategoryService', () => {
   });
 
   it('should update a category', async () => {
-    const data = {
-      category: { name: 'newname' },
-      mockUUid: '3242342-24-234-2',
-    };
+    const category = await prisma.category.findUnique({
+      where: {
+        name: 'category1',
+      },
+    });
 
     await expect(
-      service.updateCategory(data.mockUUid, data.category),
+      service.updateCategory(category.uuid, { name: 'nuevo' }),
     ).resolves.toEqual({
       id: expect.any(Number),
       uuid: expect.any(String),
-      name: data.category.name,
+      name: 'nuevo',
     });
   });
 
@@ -76,8 +78,14 @@ describe('CategoryService', () => {
   });
 
   it('should delete an category', async () => {
-    const uuid = '34534t34f-5g45g-5g45';
-    await expect(service.deleteCategory(uuid)).resolves.toEqual([]);
+    const category = await prisma.category.findUnique({
+      where: {
+        name: 'category3',
+      },
+    });
+    await expect(service.deleteCategory(category.uuid)).resolves.toMatchObject(
+      category,
+    );
   });
 
   it('should throw error when id do not exist', async () => {

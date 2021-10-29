@@ -2,6 +2,7 @@ import { Cart, Product, User } from '.prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { async } from 'rxjs';
+import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { CartService } from '../cart/cart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderService } from './order.service';
@@ -100,14 +101,14 @@ describe('OrderService', () => {
   });
   describe('getOrders', () => {
     it('should return an array of orders', async () => {
-      const orders = await service.getOrders();
+      const orders = await service.getOrders({} as PaginationQueryDto);
       expect(orders).toBeDefined();
       expect(orders.length).toBe(1);
     });
   });
   describe('getOrder', () => {
     it('should return an order', async () => {
-      const orders = await service.getOrders();
+      const orders = await service.getOrders({} as PaginationQueryDto);
       const order = await service.getOrder(orders[0].uuid);
       expect(order).toBeDefined();
     });
