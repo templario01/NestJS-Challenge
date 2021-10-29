@@ -8,8 +8,10 @@ import { AttachmentService } from '../attachment/attachment.service';
 import { AttachmentDto } from '../attachment/dto/attachment.dto';
 import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { plainToClass } from 'class-transformer';
 import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { ReadImageProductDto } from './dto/read-image-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
@@ -80,8 +82,20 @@ export class ProductService {
           },
         },
       });
-      return query;
+
+      const imagesUrl = await this.attachmentsService.getImages(uuid);
+      console.log(imagesUrl);
+      const product = plainToClass(ReadImageProductDto, {
+        ...query,
+        price: query.price.toNumber(),
+        categoryName: query.category.map((c) => c.name),
+        imagesUrl,
+      });
+
+      product.imagesUrl = imagesUrl;
+      return product;
     } catch (error) {
+      console.log(error);
       throw new NotFoundException(`Product #${uuid} not found`);
     }
   };
@@ -217,6 +231,12 @@ export class ProductService {
         },
       },
     });
+    await this.prismaService.product.update({
+      where: {
+        uuid: productUuid,
+      },
+      data: { likes: { increment: 1 } },
+    });
     return query;
   };
 
@@ -242,6 +262,13 @@ export class ProductService {
       where: {
         id: idSelected.id,
       },
+    });
+
+    await this.prismaService.product.update({
+      where: {
+        uuid: productUuid,
+      },
+      data: { likes: { decrement: 1 } },
     });
     return query;
   };

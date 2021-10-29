@@ -28,7 +28,7 @@ export class ProductController {
   }
 
   @Get(':uuid')
-  findProduct(@Param('id') uuid: string) {
+  findProduct(@Param('uuid') uuid: string) {
     return this.productService.findProduct(uuid);
   }
 

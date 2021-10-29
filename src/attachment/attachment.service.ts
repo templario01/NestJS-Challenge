@@ -67,9 +67,18 @@ export class AttachmentService {
     return plainToClass(AttachmentDto, { signedUrl, ...attachment });
   }
 
-  async getImages(productId: number): Promise<string[]> {
+  async getImages(productUuid: string): Promise<string[]> {
+    const findProduct = await this.prismaService.product.findUnique({
+      where: {
+        uuid: productUuid,
+      },
+      select: {
+        id: true,
+      },
+    });
+    const idProduct = findProduct[0];
     const attachments = await this.prismaService.attachment.findMany({
-      where: { productId },
+      where: { productId: idProduct },
     });
 
     const signedUrl = attachments.map((attachment) => {
