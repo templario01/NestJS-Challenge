@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -17,17 +17,24 @@ export class CategoryService {
   };
 
   createCategory = async (createCategoryDto: CreateCategoryDto) => {
-    const query = await this.prismaService.category.create({
-      data: { name: createCategoryDto.name },
-    });
-    return query;
+    try {
+      const query = await this.prismaService.category.create({
+        data: { name: createCategoryDto.name },
+      });
+      return query;
+    } catch (error) {
+      throw new BadRequestException('invalid name');
+    }
   };
 
-  updateCategory = async (id: number, updateCategoryDto: UpdateCategoryDto) => {
+  updateCategory = async (
+    uuid: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ) => {
     try {
       const query = await this.prismaService.category.update({
         where: {
-          id: id,
+          uuid: uuid,
         },
         data: {
           name: updateCategoryDto.name,
@@ -35,20 +42,20 @@ export class CategoryService {
       });
       return query;
     } catch (error) {
-      throw new BadRequestException('');
+      throw new NotFoundException('id not found');
     }
   };
 
-  deleteCategory = async (id: number) => {
+  deleteCategory = async (uuid: string) => {
     try {
       const query = await this.prismaService.category.delete({
         where: {
-          id: id,
+          uuid: uuid,
         },
       });
       return query;
     } catch (error) {
-      throw new NotFoundException(`Category #${id} not found`);
+      throw new NotFoundException(`Category #${uuid} not found`);
     }
   };
 }

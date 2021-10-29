@@ -1,4 +1,3 @@
-import { Attachment } from '.prisma/client';
 import {
   BadRequestException,
   ForbiddenException,
@@ -7,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { AttachmentDto } from 'src/attachment/dto/attachment.dto';
+import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ContentTypeDto } from './dto/content-type.dto';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -19,8 +19,14 @@ export class ProductService {
     private readonly attachmentsService: AttachmentService,
   ) {}
 
-  findAll = async () => {
+  findAll = async (paginationQueryDto: PaginationQueryDto) => {
+    const { limit, offset } = paginationQueryDto;
     const query = await this.prismaService.product.findMany({
+      skip: offset,
+      take: limit,
+      where: {
+        active: true,
+      },
       select: {
         id: true,
         uuid: true,
@@ -34,23 +40,23 @@ export class ProductService {
     return query;
   };
 
-  findByCategory = async (categoryId: number) => {
+  findByCategory = async (uuid: string) => {
     return await this.prismaService.product.findMany({
       where: {
         category: {
           every: {
-            id: categoryId,
+            uuid: uuid,
           },
         },
       },
     });
   };
 
-  findProduct = async (id: number) => {
+  findProduct = async (uuid: string) => {
     try {
       const query = await this.prismaService.product.findUnique({
         where: {
-          id: id,
+          uuid: uuid,
         },
         select: {
           name: true,
@@ -65,7 +71,7 @@ export class ProductService {
       });
       return query;
     } catch (error) {
-      throw new NotFoundException(`Product #${id} not found`);
+      throw new NotFoundException(`Product #${uuid} not found`);
     }
   };
 
@@ -104,14 +110,14 @@ export class ProductService {
   };
 
   updateProductAndCategories = async (
-    id: number,
+    uuid: string,
     updateProductDto: UpdateProductDto,
   ) => {
     // let query = null;
     if (updateProductDto.categoryName.length == 0) {
       return await this.prismaService.product.update({
         where: {
-          id,
+          uuid: uuid,
         },
         data: {
           active: updateProductDto.active,
@@ -130,7 +136,7 @@ export class ProductService {
     // #1 romper conexiones con todas las categorias
     await this.prismaService.product.update({
       where: {
-        id: id,
+        uuid: uuid,
       },
       data: {
         category: {
@@ -143,7 +149,7 @@ export class ProductService {
     // #2 asignar las nuevas conexiones con categorias
     return await this.prismaService.product.update({
       where: {
-        id,
+        uuid,
       },
       data: {
         active: updateProductDto.active,
@@ -157,24 +163,28 @@ export class ProductService {
     });
   };
 
-  deleteProduct = async (id: number) => {
+  deleteProduct = async (uuid: string) => {
     try {
       await this.prismaService.product.delete({
         where: {
-          id: id,
+          uuid: uuid,
         },
       });
-      return { content: `Product #${id} deleted successfull` };
+      return { content: `Product #${uuid} deleted successfull` };
     } catch (error) {
-      throw new NotFoundException(`Product #${id} not found`);
+      throw new NotFoundException(`Product #${uuid} not found`);
     }
   };
 
-  setLike = async (productId: number, userId: number) => {
+  setLike = async (productUuid: string, userUuid: string) => {
     const findLikeId = await this.prismaService.productLike.findMany({
       where: {
-        userId: userId,
-        productId: productId,
+        user: {
+          uuid: userUuid,
+        },
+        product: {
+          uuid: productUuid,
+        },
       },
       select: {
         id: true,
@@ -183,28 +193,32 @@ export class ProductService {
     const idSelected = findLikeId[0];
     if (idSelected) {
       throw new ForbiddenException(
-        `user #${userId} already have Like in product #${productId}`,
+        `user #${userUuid} already have Like in product #${productUuid}`,
       );
     }
 
     const query = await this.prismaService.productLike.create({
       data: {
         product: {
-          connect: { id: productId },
+          connect: { uuid: productUuid },
         },
         user: {
-          connect: { id: userId },
+          connect: { uuid: userUuid },
         },
       },
     });
     return query;
   };
 
-  deleteLike = async (productId: number, userId: number) => {
+  deleteLike = async (productUuid: string, userUuid: string) => {
     const findLikeId = await this.prismaService.productLike.findMany({
       where: {
-        userId: userId,
-        productId: productId,
+        user: {
+          uuid: userUuid,
+        },
+        product: {
+          uuid: productUuid,
+        },
       },
       select: {
         id: true,
@@ -223,17 +237,17 @@ export class ProductService {
   };
 
   async uploadImagesToProduct(
-    productId: number,
+    productUuid: string,
     content: ContentTypeDto,
   ): Promise<AttachmentDto> {
     const product = await this.prismaService.product.findUnique({
-      where: { id: productId },
+      where: { uuid: productUuid },
     });
     if (!product) {
       throw new NotFoundException();
     }
     const attachment = await this.attachmentsService.uploadImages(
-      productId,
+      productUuid,
       content.contentType,
     );
     if (!attachment) {

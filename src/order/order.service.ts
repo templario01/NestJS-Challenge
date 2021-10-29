@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class OrderService {
   constructor(private prismaService: PrismaService) {}
 
-  getOrders = async () => {
-    return await this.prismaService.order.findMany();
+  getOrders = async (paginationQueryDto: PaginationQueryDto) => {
+    const { limit, offset } = paginationQueryDto;
+    return await this.prismaService.order.findMany({
+      skip: offset,
+      take: limit,
+    });
   };
 
   getOrder = async (id: number) => {

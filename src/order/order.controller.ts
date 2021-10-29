@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminGuard } from 'src/common/guards/admin.guard';
+import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { jwtAuthGuard } from 'src/common/guards/token.guard';
 import { OrderService } from './order.service';
 
@@ -22,8 +23,8 @@ export class OrderController {
 
   @UseGuards(jwtAuthGuard, AdminGuard)
   @Get()
-  getOrders() {
-    return this.orderService.getOrders();
+  getOrders(@Request() paginationQueryDto: PaginationQueryDto) {
+    return this.orderService.getOrders(paginationQueryDto);
   }
 
   @UseGuards(jwtAuthGuard)
