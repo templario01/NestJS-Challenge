@@ -4,21 +4,22 @@ import attachmentConfig from '../attachment/config/attachment.config';
 import { AttachmentService } from '../attachment/attachment.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductService } from './product.service';
-import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
+import { PaginationQueryDto } from '../common/guards/dto/pagination-query.dto';
 import {
   BadRequestException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { Product, User } from '.prisma/client';
+import { User } from '.prisma/client';
 import { TypesEnum } from './dto/content-type.dto';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { ProductResponseDto } from './dto/product-response.dto';
 
 describe('ProductService', () => {
   let service: ProductService;
   let prisma: PrismaService;
   let user: User;
-  let product: Product;
+  let product: ProductResponseDto;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -201,7 +202,7 @@ describe('ProductService', () => {
         categoryName: ['category1', 'category2'],
       });
       const productDeleted = await service.deleteProduct(product.uuid);
-      expect(productDeleted.content).toMatch(
+      expect(productDeleted.message).toMatch(
         `Product #${product.uuid} deleted successfull`,
       );
     });

@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { MessageResponseDto } from 'src/common/dto/message-response.dto';
 import { compare, hashPassword } from '../common/helpers/encrypt.helper';
 import { generateToken, JWTPayload } from '../common/helpers/jwt.helper';
 import { createEmail, HOST, sgMail } from '../common/helpers/sendgrid.helper';
@@ -11,6 +12,7 @@ import { JwtService } from '../common/services/jwt/jwt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { TokenDto } from './dto/token.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +20,7 @@ export class AuthService {
     private prismaService: PrismaService,
     private jwtService: JwtService,
   ) {}
-  async signup(user: CreateUserDto) {
+  async signup(user: CreateUserDto): Promise<TokenDto> {
     const userExists = await this.prismaService.user.findUnique({
       where: {
         email: user.email,
@@ -58,7 +60,7 @@ export class AuthService {
     return { token: token.token, expiration: token.expiresAt };
   }
 
-  verifyToken = async (token: string) => {
+  verifyToken = async (token: string): Promise<MessageResponseDto> => {
     const verifiedToken = await this.jwtService.verifyToken(
       token,
       'verification',
@@ -74,7 +76,7 @@ export class AuthService {
     return { message: 'Account verified' };
   };
 
-  signin = async (user: LoginUserDto) => {
+  signin = async (user: LoginUserDto): Promise<TokenDto> => {
     const userFound = await this.prismaService.user.findUnique({
       where: { email: user.email },
     });
@@ -105,7 +107,7 @@ export class AuthService {
     return { token: token.token, expiration: token.expiresAt };
   };
 
-  logout = async (token: string) => {
+  logout = async (token: string): Promise<MessageResponseDto> => {
     await this.prismaService.token.deleteMany({
       where: {
         token: token.split(' ')[1],
@@ -114,7 +116,7 @@ export class AuthService {
     return { message: 'Logged out' };
   };
 
-  refreshToken = async (token: string) => {
+  refreshToken = async (token: string): Promise<TokenDto> => {
     const tokenString = token.split(' ')[1];
     const tokenFound = await this.prismaService.token.findFirst({
       where: {

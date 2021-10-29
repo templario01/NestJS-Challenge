@@ -1,10 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
+import { CartProductDto } from './dto/cart-product.dto';
+import { CartResponseDto } from './dto/cart-response.dto';
 
 @Injectable()
 export class CartService {
   constructor(private prismaService: PrismaService) {}
-  addToCart = async (productUuid: string, uuid: string, quantity: number) => {
+  addToCart = async (
+    productUuid: string,
+    uuid: string,
+    quantity: number,
+  ): Promise<CartResponseDto> => {
     let product;
     try {
       product = await this.prismaService.product.findUnique({
@@ -28,7 +35,11 @@ export class CartService {
       },
     });
     const updatedCart = await this.prismaService.cart.update({
-      include: { products: true },
+      include: {
+        products: {
+          include: { product: true },
+        },
+      },
       data: {
         total: {
           increment: product.price.toNumber() * quantity,
@@ -54,7 +65,19 @@ export class CartService {
         uuid,
       },
     });
-    return updatedCart;
+    return plainToClass(CartResponseDto, {
+      ...updatedCart,
+      total: updatedCart.total.toNumber(),
+      products: updatedCart.products.map((product) =>
+        plainToClass(CartProductDto, {
+          ...product,
+          product: plainToClass(CartProductDto, {
+            ...product.product,
+            price: product.product.price.toNumber(),
+          }),
+        }),
+      ),
+    });
   };
 
   removeFromCart = async (productUuid: string, uuid: string) => {
