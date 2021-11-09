@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { plainToClass } from 'class-transformer';
+import { transformCart } from 'src/common/helpers/transform.helper';
 import { PrismaService } from '../prisma/prisma.service';
-import { CartProductDto } from './dto/cart-product.dto';
 import { CartResponseDto } from './dto/cart-response.dto';
 
 @Injectable()
@@ -65,19 +64,7 @@ export class CartService {
         uuid,
       },
     });
-    return plainToClass(CartResponseDto, {
-      ...updatedCart,
-      total: updatedCart.total.toNumber(),
-      products: updatedCart.products.map((product) =>
-        plainToClass(CartProductDto, {
-          ...product,
-          product: plainToClass(CartProductDto, {
-            ...product.product,
-            price: product.product.price.toNumber(),
-          }),
-        }),
-      ),
-    });
+    return transformCart(updatedCart);
   };
 
   removeFromCart = async (productUuid: string, uuid: string) => {
@@ -118,7 +105,7 @@ export class CartService {
         },
       },
     });
-    const cartUpdated = await this.prismaService.cart.update({
+    const updatedCart = await this.prismaService.cart.update({
       where: {
         uuid,
       },
@@ -135,10 +122,14 @@ export class CartService {
         },
       },
       include: {
-        products: true,
+        products: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
-    return cartUpdated;
+    return transformCart(updatedCart);
   };
 
   getCart = async (uuid: string) => {
@@ -147,9 +138,13 @@ export class CartService {
         uuid,
       },
       include: {
-        products: true,
+        products: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
-    return cart;
+    return transformCart(cart);
   };
 }

@@ -238,8 +238,11 @@ export class ProductService {
     }
   };
 
-  setLike = async (productUuid: string, userUuid: string) => {
-    const findLikeId = await this.prismaService.productLike.findMany({
+  setLike = async (
+    productUuid: string,
+    userUuid: string,
+  ): Promise<MessageResponseDto> => {
+    const findLikeId = await this.prismaService.productLike.findFirst({
       where: {
         user: {
           uuid: userUuid,
@@ -252,9 +255,8 @@ export class ProductService {
         id: true,
       },
     });
-    console.log(findLikeId);
-    const idSelected = findLikeId[0];
-    if (idSelected) {
+
+    if (findLikeId) {
       throw new ForbiddenException(
         `User #${userUuid} already have Like in product #${productUuid}`,
       );
@@ -270,15 +272,19 @@ export class ProductService {
         },
       },
     });
-    return await this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         uuid: productUuid,
       },
       data: { likes: { increment: 1 } },
     });
+    return { message: `Like in product #${productUuid} created successfull` };
   };
 
-  deleteLike = async (productUuid: string, userUuid: string) => {
+  deleteLike = async (
+    productUuid: string,
+    userUuid: string,
+  ): Promise<MessageResponseDto> => {
     const findLikeId = await this.prismaService.productLike.findMany({
       where: {
         user: {
@@ -304,12 +310,13 @@ export class ProductService {
       },
     });
 
-    return await this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         uuid: productUuid,
       },
       data: { likes: { decrement: 1 } },
     });
+    return { message: `Like in product #${productUuid} deleted successfull` };
   };
 
   async uploadImagesToProduct(

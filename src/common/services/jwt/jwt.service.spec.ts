@@ -107,7 +107,6 @@ describe('JwtService', () => {
       try {
         await service.verifyToken(token.token, 'verification');
       } catch (e) {
-        console.log(e);
         expect(e).toBeInstanceOf(HttpException);
         expect(e.message).toEqual('New verification send');
       }

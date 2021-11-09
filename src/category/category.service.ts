@@ -15,16 +15,18 @@ export class CategoryService {
   constructor(private readonly prismaService: PrismaService) {}
 
   findAll = async () => {
-    const query = await this.prismaService.category.findMany();
-    return query;
+    const categories = await this.prismaService.category.findMany();
+    return categories.map((category) =>
+      plainToClass(ResponseCategoryDto, category),
+    );
   };
 
   createCategory = async (createCategoryDto: CreateCategoryDto) => {
     try {
-      const query = await this.prismaService.category.create({
+      const category = await this.prismaService.category.create({
         data: { name: createCategoryDto.name },
       });
-      return query;
+      return plainToClass(ResponseCategoryDto, category);
     } catch (error) {
       throw new BadRequestException('invalid name');
     }
@@ -35,7 +37,7 @@ export class CategoryService {
     updateCategoryDto: UpdateCategoryDto,
   ): Promise<CategoryResponseDto> => {
     try {
-      const query = await this.prismaService.category.update({
+      const category = await this.prismaService.category.update({
         where: {
           uuid: uuid,
         },
@@ -43,9 +45,9 @@ export class CategoryService {
           name: updateCategoryDto.name,
         },
       });
-      return plainToClass(CategoryResponseDto, query);
+
+      return plainToClass(ResponseCategoryDto, category);
     } catch (error) {
-      console.log(error);
       throw new NotFoundException('id not found');
     }
   };
@@ -58,6 +60,7 @@ export class CategoryService {
         },
       });
       return { message: `Category #${uuid} deleted successfull` };
+
     } catch (error) {
       throw new NotFoundException(`Category #${uuid} not found`);
     }

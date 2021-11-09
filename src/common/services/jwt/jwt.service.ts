@@ -25,7 +25,6 @@ export class JwtService {
     try {
       verifiedToken = jwt.verify(token, secret) as JWTPayload;
     } catch (e) {
-      console.log(e);
       if (e instanceof jwt.TokenExpiredError) {
         if (type === 'verification') {
           await this.sendNewVerification(token);
@@ -72,7 +71,7 @@ export class JwtService {
     });
     const msg = createEmail(
       user.email,
-      `token signup`,
+      'token signup',
       `Hello ${user.name} use patch to this url to verify your account`,
       `http://${HOST}/users/${newToken.token}/verify`,
       newToken.token,
