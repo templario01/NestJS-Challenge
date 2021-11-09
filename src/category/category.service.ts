@@ -3,7 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
+import { MessageResponseDto } from 'src/common/dto/message-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CategoryResponseDto } from './dto/category-response-dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -30,7 +33,7 @@ export class CategoryService {
   updateCategory = async (
     uuid: string,
     updateCategoryDto: UpdateCategoryDto,
-  ) => {
+  ): Promise<CategoryResponseDto> => {
     try {
       const query = await this.prismaService.category.update({
         where: {
@@ -40,21 +43,21 @@ export class CategoryService {
           name: updateCategoryDto.name,
         },
       });
-      return query;
+      return plainToClass(CategoryResponseDto, query);
     } catch (error) {
       console.log(error);
       throw new NotFoundException('id not found');
     }
   };
 
-  deleteCategory = async (uuid: string) => {
+  deleteCategory = async (uuid: string): Promise<MessageResponseDto> => {
     try {
-      const query = await this.prismaService.category.delete({
+      await this.prismaService.category.delete({
         where: {
           uuid: uuid,
         },
       });
-      return query;
+      return { message: `Category #${uuid} deleted successfull` };
     } catch (error) {
       throw new NotFoundException(`Category #${uuid} not found`);
     }
