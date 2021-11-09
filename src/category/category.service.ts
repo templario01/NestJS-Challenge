@@ -6,7 +6,7 @@ import {
 import { plainToClass } from 'class-transformer';
 import { MessageResponseDto } from 'src/common/dto/message-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { CategoryResponseDto } from './dto/category-response-dto';
+import { ResponseCategoryDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -35,7 +35,7 @@ export class CategoryService {
   updateCategory = async (
     uuid: string,
     updateCategoryDto: UpdateCategoryDto,
-  ): Promise<CategoryResponseDto> => {
+  ): Promise<ResponseCategoryDto> => {
     try {
       const category = await this.prismaService.category.update({
         where: {
@@ -60,7 +60,6 @@ export class CategoryService {
         },
       });
       return { message: `Category #${uuid} deleted successfull` };
-
     } catch (error) {
       throw new NotFoundException(`Category #${uuid} not found`);
     }
