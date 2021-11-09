@@ -1,8 +1,10 @@
 import { PaginationQueryDto } from 'src/common/guards/dto/pagination-query.dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { OrderResponseDto } from './dto/response-order.dto';
-import { plainToClass } from 'class-transformer';
+import {
+  transformOrders,
+  transformOrder,
+} from '../common/helpers/transform.helper';
 
 @Injectable()
 export class OrderService {
@@ -21,21 +23,7 @@ export class OrderService {
         },
       },
     });
-    return orders.map((order) =>
-      plainToClass(OrderResponseDto, {
-        ...order,
-        total: order.total.toNumber(),
-        products: order.products.map((product) =>
-          plainToClass(OrderResponseDto, {
-            ...product,
-            product: plainToClass(OrderResponseDto, {
-              ...product.product,
-              price: product.product.price.toNumber(),
-            }),
-          }),
-        ),
-      }),
-    );
+    return transformOrders(orders);
   };
 
   getOrder = async (uuid: string) => {
@@ -50,19 +38,7 @@ export class OrderService {
           },
         },
       });
-      return plainToClass(OrderResponseDto, {
-        ...order,
-        total: order.total.toNumber(),
-        products: order.products.map((product) =>
-          plainToClass(OrderResponseDto, {
-            ...product,
-            product: plainToClass(OrderResponseDto, {
-              ...product.product,
-              price: product.product.price.toNumber(),
-            }),
-          }),
-        ),
-      });
+      return transformOrder(order);
     } catch (e) {
       throw new BadRequestException('No Order Found');
     }
@@ -87,21 +63,7 @@ export class OrderService {
       },
     });
 
-    return orders.map((order) =>
-      plainToClass(OrderResponseDto, {
-        ...order,
-        total: order.total.toNumber(),
-        products: order.products.map((product) =>
-          plainToClass(OrderResponseDto, {
-            ...product,
-            product: plainToClass(OrderResponseDto, {
-              ...product.product,
-              price: product.product.price.toNumber(),
-            }),
-          }),
-        ),
-      }),
-    );
+    return transformOrders(orders);
   };
 
   createOrder = async (cartUuid: string) => {
@@ -149,18 +111,6 @@ export class OrderService {
         },
       },
     });
-    return plainToClass(OrderResponseDto, {
-      ...order,
-      total: order.total.toNumber(),
-      products: order.products.map((product) =>
-        plainToClass(OrderResponseDto, {
-          ...product,
-          product: plainToClass(OrderResponseDto, {
-            ...product.product,
-            price: product.product.price.toNumber(),
-          }),
-        }),
-      ),
-    });
+    return transformOrder(order);
   };
 }
